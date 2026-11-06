@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overlay 10 项算法</title>
+<style>
+  :root {
+    --ink: #1c2430;
+    --navy: #1f3a5f;
+    --teal: #1b6b5c;
+    --amber: #8a5a12;
+    --red: #8d3340;
+    --paper: #f3f0e8;
+    --card: #fffcf7;
+    --line: #e3dcd0;
+    --muted: #5e6a78;
+    --soft: #f7f4ee;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--paper);
+    font-family: "WenQuanYi Micro Hei", "Noto Sans CJK SC", "Source Han Sans SC",
+      "PingFang SC", "Microsoft YaHei", "Droid Sans Fallback", sans-serif;
+    font-size: 16.5px;
+    line-height: 1.75;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 22px 72px; }
+  header.hero {
+    background: var(--navy);
+    color: #f7f4ee;
+    padding: 42px 22px 28px;
+  }
+  header.hero .inner { max-width: 980px; margin: 0 auto; }
+  .kicker {
+    letter-spacing: 0.08em;
+    font-size: 13px;
+    color: #c9d7c8;
+    margin: 0 0 8px;
+  }
+  h1 { font-size: 34px; line-height: 1.25; margin: 0 0 12px; font-weight: 600; }
+  .lede { margin: 0; max-width: 740px; color: #e7eef2; font-size: 17px; }
+  nav {
+    position: sticky; top: 0; z-index: 5;
+    background: rgba(243, 240, 232, 0.94);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(8px);
+  }
+  nav .inner {
+    max-width: 980px; margin: 0 auto; padding: 8px 22px;
+    display: flex; gap: 14px; overflow-x: auto; white-space: nowrap;
+  }
+  nav a { color: var(--navy); text-decoration: none; font-size: 14px; }
+  nav a:hover { color: var(--teal); }
+  h2 {
+    font-size: 24px; color: var(--navy); margin: 42px 0 12px;
+    padding-top: 8px; font-weight: 600;
+  }
+  h3 { font-size: 18px; color: var(--teal); margin: 26px 0 8px; font-weight: 600; }
+  p { margin: 10px 0; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin: 14px 0;
+  }
+  .banner {
+    background: #eef6f3;
+    border: 1px solid #c9e0d8;
+    border-left: 5px solid var(--teal);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 8px 0 18px;
+  }
+  .warn {
+    background: #fbf6ee;
+    border: 1px solid #ead9bc;
+    border-left: 5px solid #c5922c;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 14px 0;
+  }
+  figure {
+    margin: 16px 0 22px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 10px 10px 6px;
+  }
+  figure img { width: 100%; height: auto; display: block; border-radius: 8px; }
+  figcaption { color: var(--muted); font-size: 13.5px; padding: 8px 6px 4px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    font-size: 14.5px;
+    margin: 12px 0 18px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  th, td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+  th:first-child, td:first-child, th.left, td.left { text-align: left; }
+  th { background: var(--navy); color: white; font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  tr:nth-child(even) td { background: #faf8f4; }
+  td.ok { color: var(--teal); font-weight: 600; }
+  pre.eq {
+    background: #172433;
+    color: #f3f6f4;
+    border-radius: 12px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-family: "Sarasa Mono SC", "Noto Sans Mono CJK SC", "Source Code Pro",
+      "WenQuanYi Micro Hei", ui-monospace, monospace;
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 12px 0 16px;
+  }
+  code {
+    font-family: "Sarasa Mono SC", "Source Code Pro", ui-monospace, monospace;
+    font-size: 0.92em;
+    background: #efeae1;
+    padding: 0 4px;
+    border-radius: 4px;
+  }
+  pre.eq code { background: transparent; color: inherit; padding: 0; }
+  ol.steps { padding-left: 22px; }
+  ol.steps li { margin: 8px 0; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat {
+    background: white; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+  }
+  .stat b { display: block; font-size: 20px; color: var(--navy); font-weight: 600; }
+  .stat span { color: var(--muted); font-size: 13px; }
+  footer { color: var(--muted); font-size: 13px; margin-top: 36px; }
+  @media (max-width: 720px) {
+    .grid2 { grid-template-columns: 1fr; }
+    h1 { font-size: 28px; }
+  }
+  @page { size: A4; margin: 12mm 13mm 14mm; }
+  @media print {
+    nav { display: none; }
+    body { background: white; font-size: 15px; }
+    header.hero { background: white; color: black; padding: 0 0 6px; }
+    h1 { font-size: 28px; }
+    h2 { margin-top: 18px; break-after: avoid; }
+    .lede, .kicker { color: #333; }
+    .wrap { max-width: none; padding: 0; }
+    figure, pre.eq, .card, .banner, .warn, tr { break-inside: avoid; }
+    thead { display: table-header-group; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="inner">
+    <p class="kicker">YIELDSTAR · RECIPE_SETTING_3 · 10PAR</p>
+    <h1>Overlay 10 项算法</h1>
+    <p class="lede">第 13337、13338 行已经对上。算法是：每片晶圆只取传感器角度 0° 的原始点，晶圆项用场中心，全部测点一次最小二乘。保留 3 位小数后，10 个系数和两项残差与报表一致。</p>
+  </div>
+</header>
+<nav>
+  <div class="inner">
+    <a href="#rows">报表两行</a>
+    <a href="#angle">角度 0°</a>
+    <a href="#coord">坐标</a>
+    <a href="#formula">公式</a>
+    <a href="#solve">求解</a>
+    <a href="#residual">残差</a>
+    <a href="#check">核对</a>
+    <a href="#steps">步骤</a>
+  </div>
+</nav>
+<main class="wrap">
+
+<section id="rows">
+  <h2>报表上的两行</h2>
+  <div class="banner">
+    第 13337 行是晶圆 22（NFP01255.22），第 13338 行是晶圆 23（NFP01255.23）。两行都在 <code>[RECIPE_SETTING_3]</code>，模型名 <code>10par</code>，传感器角度 0°，每片使用 3296 个点。
+  </div>
+  <div class="grid2">
+    <div class="stat"><b>3296</b><span>每片进入拟合的点数，等于 6592 行的一半</span></div>
+    <div class="stat"><b>角度 0°</b><span>不是 (0+180)/2。平均后的 T_X 对不上表</span></div>
+  </div>
+  <table>
+    <thead>
+      <tr><th class="left">项</th><th class="left">单位</th><th>晶圆 22</th><th>晶圆 23</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="left">T_X</td><td class="left">nm</td><td>-0.113</td><td>-0.09</td></tr>
+      <tr><td class="left">T_Y</td><td class="left">nm</td><td>-0.097</td><td>0.051</td></tr>
+      <tr><td class="left">WRot</td><td class="left">µrad</td><td>0.001</td><td>0.001</td></tr>
+      <tr><td class="left">WNonOrt</td><td class="left">µrad</td><td>0</td><td>-0.003</td></tr>
+      <tr><td class="left">WExp_X</td><td class="left">ppm</td><td>-0.001</td><td>-0.002</td></tr>
+      <tr><td class="left">WExp_Y</td><td class="left">ppm</td><td>-0.001</td><td>0</td></tr>
+      <tr><td class="left">FRot</td><td class="left">µrad</td><td>-0.005</td><td>-0.006</td></tr>
+      <tr><td class="left">FMag</td><td class="left">ppm</td><td>0.027</td><td>0.01</td></tr>
+      <tr><td class="left">FAsRot</td><td class="left">µrad</td><td>-0.032</td><td>-0.028</td></tr>
+      <tr><td class="left">FAsMag</td><td class="left">ppm</td><td>0.01</td><td>0.018</td></tr>
+      <tr><td class="left">Res_X</td><td class="left">nm</td><td>0.844</td><td>0.831</td></tr>
+      <tr><td class="left">Res_Y</td><td class="left">nm</td><td>0.962</td><td>0.882</td></tr>
+    </tbody>
+  </table>
+  <p>报表会丢掉小数末尾的 0，所以 <code>-0.090</code> 写成 <code>-0.09</code>，<code>0.010</code> 写成 <code>0.01</code>。对照时先保留 3 位小数。</p>
+  <figure>
+    <img src="figures/01_flow.png" alt="从原始行到 10 个系数的计算流程">
+    <figcaption>图 1　计算顺序。角度、坐标和求解方式都按这个顺序，换一步就会和报表分开。</figcaption>
+  </figure>
+</section>
+
+<section id="angle">
+  <h2>用角度 0° 的原始行</h2>
+  <p>每个物理标记在 <code>OV_DATA</code> 里占相邻两行，传感器角分别是 0° 和 180°。晶圆 22、场 (−6, −3)、标记 (12.4725, 5.856) mm：</p>
+  <div class="grid2">
+    <div class="stat"><b>2.372 , 1.153 nm</b><span>角度 0° 的 OV_X, OV_Y</span></div>
+    <div class="stat"><b>2.318 , 1.111 nm</b><span>角度 180° 的 OV_X, OV_Y</span></div>
+  </div>
+  <p>两次之差的一半是 TIS，两次的平均才是 TIS 修正后的套刻。文件把两次都原样留下了。同一套最小二乘只换输入时，晶圆 22 的 T_X 如下。</p>
+  <table>
+    <thead><tr><th class="left">输入</th><th>T_X / nm</th><th class="left">和表的关系</th></tr></thead>
+    <tbody>
+      <tr><td class="left">角度 0°</td><td>-0.113</td><td class="left ok">与第 13337 行一致</td></tr>
+      <tr><td class="left">角度 180°</td><td>-0.095</td><td class="left">与第 13369 行一致</td></tr>
+      <tr><td class="left">(0+180)/2</td><td>-0.104</td><td class="left">对不上第 13337 行</td></tr>
+      <tr><td class="left">CSV 第 13337 行</td><td>-0.113</td><td class="left">目标</td></tr>
+    </tbody>
+  </table>
+  <figure>
+    <img src="figures/03_tis_choice.png" alt="角度 0 度、180 度和二者平均的平移对比">
+    <figcaption>图 2　只有角度 0° 的 T_X 落在报表那条线上。平均以后大约偏 0.009 nm。</figcaption>
+  </figure>
+  <div class="warn">文件头 <code>OV_SIGN_CONVENTION = Corrections</code>。拟合直接使用表里的 OV_X、OV_Y，不再取反。系数的正负沿用这个约定。</div>
+</section>
+
+<section id="coord">
+  <h2>晶圆项用场中心</h2>
+  <p>场中心由场号和网格间距得到。本文件网格偏移为 0。</p>
+  <pre class="eq"><code>Xc = COL × 25.125 mm
+Yc = ROW × 15.98 mm</code></pre>
+  <p>这就是 <code>FIELDCENTER_X/Y</code>。标记相对场中心的坐标是 <code>TARGETPOS_X/Y</code>，记为 (x, y)。原点在场中心，不是标记重心，也不是场的角点。</p>
+  <p>标记的晶圆绝对坐标是 (Xc + x, Yc + y)。10 项模型不把这个绝对坐标代进晶圆项。晶圆项只用 (Xc, Yc)，场内项只用 (x, y)。</p>
+  <figure>
+    <img src="figures/02_coordinates.png" alt="晶圆上场中心，以及一个场内 20 个标记">
+    <figcaption>图 3　左图是场中心。右图是一个完整场的 20 个标记，重心约在 (−0.92, +1.39) mm，不在场中心。</figcaption>
+  </figure>
+  <p>Image 1 比步进网格略大，个别标记会落在网格矩形外面、图像矩形里面。场中心仍然用网格中心。</p>
+</section>
+
+<section id="formula">
+  <h2>10 项公式</h2>
+  <p>坐标用 mm，套刻用 nm。膨胀系数直接是 ppm，旋转和非正交直接是 µrad，因为 1 ppm × 1 mm = 1 nm，1 µrad × 1 mm = 1 nm。不要再乘 1000。</p>
+  <pre class="eq"><code>dx = T_X
+   + WExp_X · Xc
+   − (WRot + WNonOrt) · Yc
+   + (FMag + FAsMag) · x
+   − (FRot + FAsRot) · y
+
+dy = T_Y
+   + WRot · Xc
+   + WExp_Y · Yc
+   + (FRot − FAsRot) · x
+   + (FMag − FAsMag) · y</code></pre>
+  <p>前 6 项看整片晶圆，后 4 项在每个场里重复同一形状。</p>
+  <figure>
+    <img src="figures/04_ten_terms.png" alt="十个系数各自对应的矢量场形状">
+    <figcaption>图 4　每一项单独打开时的矢量形状。上面六幅是晶圆项，下面右四幅是场内项。幅度做了归一化，只看方向。</figcaption>
+  </figure>
+  <table>
+    <thead><tr><th class="left">项</th><th class="left">单独看时的矢量</th></tr></thead>
+    <tbody>
+      <tr><td class="left">T_X, T_Y</td><td class="left">全片同向平移</td></tr>
+      <tr><td class="left">WRot</td><td class="left">绕晶圆中心逆时针。dx = −R·Yc，dy = R·Xc</td></tr>
+      <tr><td class="left">WNonOrt</td><td class="left">只有 X 分量，大小正比于 Y。X 轴是参考轴</td></tr>
+      <tr><td class="left">WExp_X, WExp_Y</td><td class="left">沿 X 或沿 Y，位移随坐标拉开</td></tr>
+      <tr><td class="left">FRot</td><td class="left">每个场内部逆时针转</td></tr>
+      <tr><td class="left">FMag</td><td class="left">每个场以场中心为心，X 和 Y 同比例放大</td></tr>
+      <tr><td class="left">FAsRot</td><td class="left">场内两个方向的旋转一正一负，形成剪切</td></tr>
+      <tr><td class="left">FAsMag</td><td class="left">X 放大时 Y 缩小</td></tr>
+    </tbody>
+  </table>
+  <h3>和线性系数的换算</h3>
+  <p>若先把模型写成 dx = … + ax·x + ay·y，dy = … + bx·x + by·y，则</p>
+  <pre class="eq"><code>FMag   = (ax + by) / 2
+FAsMag = (ax − by) / 2
+FRot   = (bx − ay) / 2
+FAsRot = (−ay − bx) / 2</code></pre>
+  <p>这组符号用两片晶圆、0° 和 180° 共四组结果核对过。非对称项的符号如果取反，FMag 还能接近，FAsRot 和 FAsMag 会和表差一倍或变号。</p>
+</section>
+
+<section id="solve">
+  <h2>全部测点一次求解</h2>
+  <p>每个测点提供两个方程，未知数就是这 10 个数。普通最小二乘，点与点不加权。有效点全部进入，不先按场求平均，也不先把同一场内位置叠成一张平均场。</p>
+  <p>设计矩阵每个点占两行，列顺序与表头一致：T_X、T_Y、WRot、WNonOrt、WExp_X、WExp_Y、FRot、FMag、FAsRot、FAsMag。</p>
+  <pre class="eq"><code>dx 行   1   0   −Yc   −Yc   Xc    0   −y    x   −y    x
+dy 行   0   1    Xc     0    0   Yc    x    y   −x   −y</code></pre>
+  <p>本文件设计矩阵的条件数大约 120，双精度直接求解即可。</p>
+  <div class="warn">
+    先把一个场里的点平均成一个矢量，再拟合晶圆项，得到的是另一个模型。完整场 20 个标记的重心偏离场中心约 1 mm，边缘场的标记还不全一样，场平均会把场内倍率带进晶圆膨胀。
+  </div>
+  <p>晶圆 22、角度 0°：</p>
+  <table>
+    <thead>
+      <tr><th class="left">算法</th><th>WExp_X</th><th>圆整</th><th>FMag</th><th>圆整</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="left">一次最小二乘</td><td>-0.00075</td><td class="ok">-0.001</td><td>0.02708</td><td class="ok">0.027</td></tr>
+      <tr><td class="left">先按场平均</td><td>-0.00261</td><td>-0.003</td><td>0.02629</td><td>0.026</td></tr>
+      <tr><td class="left">晶圆项改用测点绝对坐标</td><td>-0.00075</td><td>-0.001</td><td>0.02812</td><td>0.028</td></tr>
+      <tr><td class="left">CSV</td><td></td><td>-0.001</td><td></td><td>0.027</td></tr>
+    </tbody>
+  </table>
+  <figure>
+    <img src="figures/05_why_joint.png" alt="场内重心偏移，以及三种算法和报表的差别">
+    <figcaption>图 5　左图是标记重心相对场中心的偏移。右图红线是报表圆整后的目标。只有一次最小二乘落在红线上。</figcaption>
+  </figure>
+  <p>绝对坐标不改变 WExp_X，因为场中心那一列还在。它会把晶圆膨胀在场内的那一段算进 FMag，0.028 ppm 就和表上的 0.027 ppm 分开了。</p>
+  <p>平移没有单独的场内项。T_X、T_Y 就是联合方程里的常数项，已经包含场内常数。</p>
+</section>
+
+<section id="residual">
+  <h2>残差</h2>
+  <pre class="eq"><code>rx = OV_X − dx
+ry = OV_Y − dy
+Res_X = sqrt( Σ rx² / (N − 1) )
+Res_Y = sqrt( Σ ry² / (N − 1) )</code></pre>
+  <p>分母是 N − 1。晶圆 22 的 X 残差，用 N − 1、用 N、用 N − 10 分别得到 0.843625、0.843497、0.84478。只有第一种圆整成表上的 0.844。</p>
+  <p>这 10 项只解释一小段系统量。晶圆 22 原始 OV_X 的标准差约 0.93 nm，减去模型后是 0.844 nm。WExp 在晶圆半径上大约 0.15 nm，FMag = 0.027 ppm 在场边缘大约 0.3 nm。残差大，不表示系数算错。</p>
+  <figure>
+    <img src="figures/07_residual_map.png" alt="场平均实测、模型预测和残差">
+    <figcaption>图 6　三幅图用同一箭头比例。中间的模型在晶圆尺度上只有约 0.3 nm，所以缩成小点。右边是去掉模型后仍留在各场上的残差。</figcaption>
+  </figure>
+  <div class="card">
+    <p>单点例子：晶圆 22，场 (−6, −3)，场中心 (−150.750, −47.940) mm，标记 (12.4725, 5.856) mm，角度 0°。</p>
+    <p>实测 (2.372, 1.153) nm。模型 (0.706, 0.312) nm。该点残差 (1.666, 0.841) nm。模型是全片一条拟合，不是把每个点都贴到 0。</p>
+  </div>
+  <h3>全批那一行</h3>
+  <p>第 13339 行 ALL_WAFERS 的 10 个系数，等于两片叠在一起再拟合，也等于两片按同一采样顺序逐点平均后再拟合。两片的场和标记坐标完全一样，所以两个系数解相同。</p>
+  <p>这一行的 Res_X = 0.823、Res_Y = 0.907，是逐点平均之后那 3296 个平均套刻的残差标准差（0.823266 和 0.906526）。两片直接叠在一起的残差标准差是 0.843 和 0.929，那不是表上的数。</p>
+  <p>单片结果用单片残差。只有做全批这一行时，残差才改用逐点平均后的残差。</p>
+</section>
+
+<section id="check">
+  <h2>核对</h2>
+  <h3>晶圆 22 · 第 13337 行</h3>
+  <table>
+    <thead><tr><th class="left">项</th><th>计算值</th><th>保留 3 位</th><th>CSV</th></tr></thead>
+    <tbody>
+      <tr><td class="left">T_X</td><td>-0.113419</td><td>-0.113</td><td class="ok">-0.113</td></tr>
+      <tr><td class="left">T_Y</td><td>-0.096906</td><td>-0.097</td><td class="ok">-0.097</td></tr>
+      <tr><td class="left">WRot</td><td>0.000571</td><td>0.001</td><td class="ok">0.001</td></tr>
+      <tr><td class="left">WNonOrt</td><td>-0.000043</td><td>0</td><td class="ok">0</td></tr>
+      <tr><td class="left">WExp_X</td><td>-0.000748</td><td>-0.001</td><td class="ok">-0.001</td></tr>
+      <tr><td class="left">WExp_Y</td><td>-0.001335</td><td>-0.001</td><td class="ok">-0.001</td></tr>
+      <tr><td class="left">FRot</td><td>-0.004860</td><td>-0.005</td><td class="ok">-0.005</td></tr>
+      <tr><td class="left">FMag</td><td>0.027075</td><td>0.027</td><td class="ok">0.027</td></tr>
+      <tr><td class="left">FAsRot</td><td>-0.031574</td><td>-0.032</td><td class="ok">-0.032</td></tr>
+      <tr><td class="left">FAsMag</td><td>0.010460</td><td>0.010</td><td class="ok">0.01</td></tr>
+      <tr><td class="left">Res_X</td><td>0.843625</td><td>0.844</td><td class="ok">0.844</td></tr>
+      <tr><td class="left">Res_Y</td><td>0.962337</td><td>0.962</td><td class="ok">0.962</td></tr>
+    </tbody>
+  </table>
+  <h3>晶圆 23 · 第 13338 行</h3>
+  <table>
+    <thead><tr><th class="left">项</th><th>计算值</th><th>保留 3 位</th><th>CSV</th></tr></thead>
+    <tbody>
+      <tr><td class="left">T_X</td><td>-0.090275</td><td>-0.090</td><td class="ok">-0.09</td></tr>
+      <tr><td class="left">T_Y</td><td>0.050972</td><td>0.051</td><td class="ok">0.051</td></tr>
+      <tr><td class="left">WRot</td><td>0.001278</td><td>0.001</td><td class="ok">0.001</td></tr>
+      <tr><td class="left">WNonOrt</td><td>-0.003212</td><td>-0.003</td><td class="ok">-0.003</td></tr>
+      <tr><td class="left">WExp_X</td><td>-0.001574</td><td>-0.002</td><td class="ok">-0.002</td></tr>
+      <tr><td class="left">WExp_Y</td><td>-0.000356</td><td>0</td><td class="ok">0</td></tr>
+      <tr><td class="left">FRot</td><td>-0.005998</td><td>-0.006</td><td class="ok">-0.006</td></tr>
+      <tr><td class="left">FMag</td><td>0.009538</td><td>0.010</td><td class="ok">0.01</td></tr>
+      <tr><td class="left">FAsRot</td><td>-0.027933</td><td>-0.028</td><td class="ok">-0.028</td></tr>
+      <tr><td class="left">FAsMag</td><td>0.018088</td><td>0.018</td><td class="ok">0.018</td></tr>
+      <tr><td class="left">Res_X</td><td>0.830626</td><td>0.831</td><td class="ok">0.831</td></tr>
+      <tr><td class="left">Res_Y</td><td>0.881992</td><td>0.882</td><td class="ok">0.882</td></tr>
+    </tbody>
+  </table>
+  <p>同一程序换角度 180°，与第 13369、13370 行一致。两片一起的系数与第 13339 行一致。复核命令是 <code>python3 src/verify_10par.py</code>。</p>
+</section>
+
+<section id="steps">
+  <h2>计算步骤</h2>
+  <ol class="steps">
+    <li>读 <code>[OV_DATA]</code>。坐标用 FIELDCENTER 和 TARGETPOS，套刻用 OV_X、OV_Y。</li>
+    <li>留下指定晶圆、传感器角 0°、VALID_X 和 VALID_Y 都为真的行。本文件每片 3296 行。</li>
+    <li>不把 0° 和 180° 平均，不把 (x, y) 加到 (Xc, Yc) 上。</li>
+    <li>按上面的两行设计矩阵，对全部点做普通最小二乘。</li>
+    <li>按 T_X、T_Y、WRot、WNonOrt、WExp_X、WExp_Y、FRot、FMag、FAsRot、FAsMag 输出。</li>
+    <li>Res_X、Res_Y 用残差的样本标准差，分母 N − 1。</li>
+    <li>和报表对照时保留 3 位小数。</li>
+  </ol>
+  <p>对应代码是 <code>src/overlay_10par.py</code> 里的 <code>fit_10par()</code> 和 <code>design_matrix()</code>。</p>
+  <footer>量测文件 PJ_20260907_170054。模型与 YieldStar 导出的 10par 行对齐，包括第 13337、13338 行。</footer>
+</section>
+</main>
+</body>
+</html>
